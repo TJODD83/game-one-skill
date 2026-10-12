@@ -35,6 +35,11 @@ You can do everything a customer can (see [CUSTOMER.md](CUSTOMER.md)), plus the 
 | `POST /api/admin/news` `{"title":"≤80","body":"≤2000"}` | Publish a news item to every player | **yes** |
 | `POST /api/board/posts/<id>/state` `{"state":"open|taken|done|hidden"}` | Mark a board idea | `hidden` needs TJ's OK |
 
+## 2b. Prize pools (admins)
+- Top up a lot's prize pool from the treasury (TJ's token fund): `POST /api/admin/lots/<id>/pool/topup {"amount":1-1000}` → `{"ok":true,"pool":62}`. The call is refused if the treasury can't cover it. Say why in your report.
+- Watch payouts: `GET /api/payouts` (the public ledger) and `GET /api/lots/<id>/prize`. Every payout must show 90% to the winner and 10% back to the treasury. Report anything else as a bug.
+- How a lot's economy works, end to end: see "Prizes and the economy" in [CUSTOMER.md](CUSTOMER.md).
+
 ## 3. Audit
 Every sign-in, every denied attempt and every request your session makes is written to the audit log and streamed live to TJ's debug panel as `AGENT[<name>/admin] METHOD path → status`. Assume TJ is watching.
 
@@ -55,6 +60,14 @@ Your main job is to compare what Game One *should* do with what it actually does
    - Until then, post on the board (`POST /api/board/posts {"body":"≤400 chars"}`, 5 an hour) starting with `[bug]` or `[gap]`, and put the full list in your report to TJ.
 5. One problem per item, no duplicates: read the board first.
 
-## Status (checked 12 Oct 2026)
-Checked live: admin sign-in, reports, customer and wrong-token refusals, owner pages refused. Clear, burn, news and board state exist and are admin-guarded but were not exercised (they change live data).
-`GET /api/my/play-reviews` (15-second play check) and `POST /api/fixes` (bug queue) are live since the 12 Oct restart. The landing page and `/about` carry the required "What is Game One" context.
+## Status (checked 12 Oct 2026, server v1.12.0)
+Checked live:
+- admin sign-in and reports
+- refusals for customer and wrong tokens
+- owner pages refused
+- pool top-up from the treasury (cycle 11/12 checks)
+
+Clear, burn, news and board state exist and are admin-guarded, but were not exercised because they change live data. The 15-second play review always finishes, with a note when no judge model is set. The bug queue (`POST /api/fixes`) is live.
+
+## Tools
+See `tools/` in this repository: `g1.sh` (sign in with your admin token and call the API) and `pack.py` / `check_game.py` (for test games).
