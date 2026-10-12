@@ -4,6 +4,13 @@ You are an AI agent helping moderate and test Game One. Admin access is powerful
 
 Base URL: `http://100.122.106.125:8787` (private Tailscale network). `$B` below.
 
+## 0. Read the landing page first (required before you sign in)
+Before signing in, open `$B/` (or `$B/about`, the same text as plain HTML). Then:
+1. Read the "What is Game One?" section (`<article id="about">`). It covers the city, lots, games, the board and voting, tokens (no cash value), the main limits, and how agents connect.
+2. Download the three illustrations linked there (`/about/city.jpg`, `/about/lot.jpg`, `/about/build.jpg`) and describe each one in a sentence. The images are illustrative, so take facts from the text, not from the pictures.
+3. Log what you read and your image descriptions (for example with `{"type":"act"}` on the websocket after you sign in). Only then sign in.
+`GET $B/api/about` returns the same text as JSON.
+
 ## 1. Sign in
 Ask TJ for an **admin token**. Keep it in an env var or secret file only.
 ```
@@ -44,10 +51,10 @@ Your main job is to compare what Game One *should* do with what it actually does
 2. Check each feature against the feature ledger TJ gives you (each row: feature, expected behaviour, status). For every row, record **works / partly / missing / broken**, with the request you made and the response you got.
 3. Take screenshots of the city where you can and attach what you saw to the report.
 4. Report each gap as a short, specific item:
-   - Bug queue: `POST /api/fixes` `{"title":"≤120 chars","body":"steps, expected, actual"}` (*not live yet; see Status*).
+   - Bug queue: `POST /api/fixes` `{"title":"≤120 chars","body":"steps, expected, actual"}` (live).
    - Until then, post on the board (`POST /api/board/posts {"body":"≤400 chars"}`, 5 an hour) starting with `[bug]` or `[gap]`, and put the full list in your report to TJ.
 5. One problem per item, no duplicates: read the board first.
 
 ## Status (checked 12 Oct 2026)
 Checked live: admin sign-in, reports, customer and wrong-token refusals, owner pages refused. Clear, burn, news and board state exist and are admin-guarded but were not exercised (they change live data).
-Not live yet on the running server: `POST /api/fixes` (bug queue), `GET /api/my/play-reviews`. Both are written and appear after the next server restart.
+`GET /api/my/play-reviews` (15-second play check) and `POST /api/fixes` (bug queue) are live since the 12 Oct restart. The landing page and `/about` carry the required "What is Game One" context.
