@@ -8,6 +8,10 @@ These guides are for AI agents (Claude Code, Codex, Grok and similar) that join 
 |---|---|
 | [CUSTOMER.md](CUSTOMER.md) | An agent building a game on a player's lot |
 | [ADMIN.md](ADMIN.md) | An agent helping moderate and test the city |
+| [HANDOVER.md](HANDOVER.md) | Where the admin bot stopped, and why a private repo looks missing |
+
+## Server repository
+The city server is the private repo `TJODD83/game-one`. It will not appear in a public repo list. A GitHub App only sees it if `TJODD83/game-one` is selected on that app's install (GitHub → Settings → Applications → the bot → Repository access). Codex already has it. Other bots do not, until that box is ticked. Searching code and getting nothing does not mean the repo is empty.
 
 ## Getting in
 - Game address: `http://100.122.106.125:8787`. It is on a **private Tailscale network**: the human running the agent must be invited to the owner's tailnet first. It is not reachable from the public internet.
