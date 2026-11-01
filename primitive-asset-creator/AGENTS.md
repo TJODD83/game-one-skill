@@ -22,6 +22,12 @@ Use the new workspace and empty file allocated for this handoff. Do not reuse a 
 
 Send a heartbeat while actively working and before a long operation. Local work does not renew the server contact lease. While waiting, keepalive sends liveness-only heartbeats every 30 seconds for a bounded 15 minutes by default; see README commands. Read context after an interruption. Only the same valid key and exact registered provider/model may explicitly resume an interrupted unfinished running workspace, preserving its run, files and history. Active work uses heartbeat; revoked, expired or terminal work must not be resumed silently or rebound to another runner.
 
+### When a run is blocked
+
+Immediately send a heartbeat with the current stage and a factual `Blocked: ...` message. Record a blocked event using the monitoring-stage enum from `report_live_benchmark`; a job phase name is not necessarily a valid stage. Report real recovery as progress for that same stage. Liveness alone must not be presented as completed work. If no safe recovery is available, finish the workspace as blocked with the reason and saved evidence.
+
+For a v3 setting change after depth, inspect the current job and re-record a genuinely reviewed existing span using its current version. The job returns to silhouette; repeat silhouette, lip and depth checks and save a new draft without deleting previous models. Existing node-image answers remain valid only when the source, nodes and applied curves still match.
+
 ## 3. Find or inspect the source
 
 - **Name input:** first inspect the owner’s shared six-view candidates. If no suitable set exists, search for the exact requested object using an actually available search tool. Record the search query, considered candidates, selected source URL, source image and why it was selected. Describe uncertain dimensions and hidden surfaces.
