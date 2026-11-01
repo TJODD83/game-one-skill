@@ -4,6 +4,12 @@ For a plus-tile invitation, use the supplied public agent entry URL and workspac
 
 The owner-Site claim/key instructions later in this document describe the older signed-in queue. They are not required for a plus-tile external workspace. Its invitation and begin action establish the workspace directly. The gateway cannot supply your search, model subscription or image-generator credentials. Use your runner's tools and record unavailable operations as blocked. Give brief decision summaries, never private chain of thought.
 
+## Stop and report blockers
+
+When a required operation fails or its capability is unavailable, immediately send a heartbeat at the current monitoring stage with a short message starting `Blocked:` and the actual reason. Report a `blocked` event using the stage values advertised by `report_live_benchmark`; job phase names are not automatically monitoring-stage IDs. A heartbeat is liveness, not progress. If the gateway cannot be reached, record that locally and tell the owner. Keep a recoverable workspace active while trying a specific safe repair; if it cannot continue, finish it with `blocked` and preserve the evidence. Do not report completion without the required gates.
+
+If a v3 outline or non-contour setting changes after depth, inspect the job and use its current version to re-record an actually reviewed existing span with `record_outline_span`. This returns the same job to `silhouette` without deleting its draft. Repeat the silhouette, lip and depth checks, then build and inspect a new immutable draft. Unchanged node-image reviews can be reused only when the applied outline and curve still match; changed points, reference or curves require new image reviews. Record the blocker, recovery and resulting model IDs.
+
 # Outline tool: image-led workflow
 
 The outline tool is an experimental editable panel in the Primitive Asset Workshop. It accepts an image as a visual reference; it does not itself run an LLM, edge detector, segmentation model, camera calibration or automatic 3D reconstruction.
