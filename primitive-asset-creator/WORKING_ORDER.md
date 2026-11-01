@@ -54,6 +54,26 @@ The `cap_uv` setting chooses `strips` or experimental `silhouette` (curved bands
 
 Call `get_agent_workflow_status` to retrieve the current MCP tool names, shape capability records and the current image-to-shape stage boundaries. Its result is discovery only, not a job, a scene, an automatically enforced sequence, per-job authorisation or a gate pass. Agent-callable empty-scene creation, general scene-feature edits and automatic cross-view fitting remain blocked. An agent may now create and inspect a saved outline draft through the dedicated scene-draft tool; an action log alone is not proof of a scene.
 
+## Reference candidate questions and selection
+
+Before choosing a search image, inspect a batch of actual candidates with your available vision tool and call `review_reference_candidates`. Record the real query, source/image URLs, inspection method/tool, image dimensions when known, and an evidence note for each image. The tool asks these exact questions with `yes`, `no` or `unknown` answers:
+
+1. Does this show the requested object?
+2. Are any people visible in the image?
+3. Is any part of the object obscured?
+4. Is any part cut off by the image edge?
+5. Is the front clearly visible?
+6. Is a side clearly visible?
+7. Is the top clearly visible?
+8. Is the object sharp enough to trace silhouette and details?
+9. Can the object boundary be separated from the background?
+
+Declared people, occlusion, clipping, object mismatch or blur reject a candidate. Missing visual inspection or unknown critical answers leave it unresolved and prevent selection. The tool ranks supplied observations; it does not fetch images, detect people or independently verify the answers. Review and select a usable candidate with a factual reason. Prefer a clean, complete front/side three-quarter view. Front, side and top coverage are the priority three views; missing coverage remains explicit rather than being filled with guessed geometry. Repeated reviews use the returned review ID/current revision and remain scoped to the same workspace. This new report does not retrospectively change the gates of an older job.
+
+For an attachment request, skip web search and assess the actual saved attachment with its reference name. If the attachment is rejected, record why and request a suitable replacement; do not silently substitute a search result.
+
+Optional segmentation or depth tools are the agent's choice when actually available. A mask may help separate a clear object's boundary; it cannot recover an obscured or clipped object. A depth estimate is not a calibrated dimension or proof of hidden geometry. Record the actual tool/provider, input, output, uncertainty and validation. No segmentation/depth model or paid service is installed or invoked by the candidate-review tool.
+
 ## Generated six-view reference
 
 A single perspective image does not determine its hidden views. Use `prepare_multiview_reference` on an owned saved image project to get the generic 3-column × 2-row prompt and source revision. Inspect the source image with the available image tool. If an actual image-generation tool is available in the agent session, attach that source and request the sheet; otherwise record the generation step as blocked. The workshop itself does not call ChatGPT image generation or search the internet.
@@ -61,6 +81,16 @@ A single perspective image does not determine its hidden views. Use `prepare_mul
 The layout is FRONT, BACK, LEFT on the first row; RIGHT, TOP, BOTTOM on the second. Import the complete 16:9 sheet in the silhouette workspace, inspect the whole sheet and each crop, then save the linked set and select a view. The 3×2 crop uses exact pixel boundaries. Alternatively an agent can crop the sheet and call `create_multiview_reference_set` with all seven JPEGs, their dimensions, the SHA-256 of the sheet JPEG data URL and the unchanged source revision. Saving is atomic; the set records owner, source, revision, hash and view label. Each view is a fresh outline project. A sheet project cannot be used as a silhouette job; choose a cropped view.
 
 Generated panels are **unverified estimates**, not calibrated orthographic measurements. Labels and crop dimensions do not prove the generator placed the correct view in each panel, that the object stayed inside each cell, that its proportions agree between panels, or that hidden details exist. Inspect and reject incorrect panels. Do not treat generated pixels as exact 3D coordinates or claim a model or a UV has been created by this step.
+
+## When this runner cannot generate the views
+
+`prepare_multiview_reference` returns the actual generation prompt, pinned source project/revision, layout and `generatorFallback` instructions. It prepares a request only. If this runner lacks image generation, export the real source image (using `inspect_outline_project`) and the prepared prompt to a capable generator or ask the owner to run it. Do not pass the workspace key or service credentials to a second provider. An active invitation remains bound to its original declared provider/model.
+
+Keep `generate_views`/`wait_views` blocked or awaiting external output until the artifacts actually return. A copied request is not automatic dispatch. The capable generator returns the actual sheet plus six JPEG crops to the original authenticated runner; that runner inspects them, computes the required sheet hash and calls `create_multiview_reference_set` with the unchanged source revision. Then inspect the saved set before tracing. The return contract is seven actual images: sheet, front, back, left, right, top and bottom.
+
+If only front, side and top are available, record those three as partial priority evidence and keep the six-view pipeline unresolved. Do not duplicate one image into the missing cells. Neither the original perspective photo nor a projection/render of the current model is a generated reference. Optional depth or segmentation output does not replace generated or observed views.
+
+While the original runner is truly alive it may maintain its lease with real heartbeats. If the workspace expires or ends, obtain a linked retry key and retain source/generation lineage; do not silently resume an expired session. Continue independent available checks and give the exact blocker rather than claiming a finished reconstruction.
 
 ## Shared six-view scene inspection
 
@@ -137,7 +167,7 @@ A supplied footprint can be checked against a caller-supplied host boundary and 
 
 In the main workshop use **Select feature faces** to add or remove actual mesh faces on the selected object, then **Inspect selected boundary**. Existing face bands and named profile spans can also be inspected. A connected, consistently wound planar selection with one simple boundary produces a local boundary and current UV-island count. Disconnected selections, branching or multiple loops and curved/non-planar hosts are rejected with a reason. Use **Preview feature silhouette** to see a curved or sharp inward contour, with a requested percentage of the smaller local boundary dimension. This is an outline guide only: it does not alter mesh topology, construct a hole or mound, fit a detail to reference views, or approve UVs. Selections and preview are temporary.
 
-For an owned saved model, `inspect_saved_feature_faces` without indices lists up to 500 selectable faces and local centres; provide indices to inspect their actual connected planar boundary and optionally a silhouette guide. Face IDs and source UVs belong to that saved geometry; they are not stable across regeneration, do not refer to the live scene, and are not a packed-atlas or UV approval. Curved and multi-loop selections require later tools. The caller must still determine a genuine host and feature from the source, views and current scene, and apply only a supported construction tool.
+For an owned saved model, `inspect_saved_feature_faces` without indices lists up to 500 selectable faces and local centres per page. Start with `face_offset: 0`, use `face_limit` from 1 to 500, then follow `nextOffset` until null to inspect all `faceCount` faces. Listed indices remain global across pages; do not guess face IDs beyond the first page. Pagination cannot be combined with `face_indices`. Reinspect after a geometry revision, then provide indices to inspect their actual connected planar boundary and optionally a silhouette guide. Face IDs and source UVs belong to that saved geometry; they are not stable across regeneration, do not refer to the live scene, and are not a packed-atlas or UV approval. Curved and multi-loop selections require later tools. The caller must still determine a genuine host and feature from the source, views and current scene, and apply only a supported construction tool.
 
 
 ### Required detail work order

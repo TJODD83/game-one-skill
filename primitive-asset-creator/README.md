@@ -52,3 +52,11 @@ Tool calls return MCP-style `content` and `isError`. A successful HTTP response 
 Identity metadata is reported by the runner. Key possession authenticates access to the allocated workspace; it does not prove which vendor/model generated a request. `reason` must never contain hidden chain of thought.
 
 Run client checks with `python3 -m unittest discover -s tests`.
+
+## Reference selection and unavailable generators
+
+Before selecting a source, use the current `review_reference_candidates` schema to record a visually inspected batch. It asks about requested-object identity, people, obstruction, clipping, front/side/top coverage, sharpness and background separation. Supplied observations are scored; the server does not detect those properties itself. Prefer a clean full-object front/side three-quarter image and record why it was selected.
+
+If this runner cannot generate images, `prepare_multiview_reference` supplies the exact prompt and a manual handoff/resume contract. Export the source plus prompt to a capable generator or the owner, and return the actual artifacts to the original authenticated runner for inspection/import. Never transfer the workspace key to another provider. Keep the generation stage blocked/awaiting output, and record front/side/top-only evidence as partial. The source image, current mesh render or repeated crops do not count as generated views. No automatic generator dispatch, segmentation model or depth model is installed by this kit.
+
+Saved face inspection supports `face_offset`/`face_limit` pages (up to 500). Follow `nextOffset` until null before choosing actual global face IDs; do not guess IDs outside the returned page.

@@ -22,17 +22,21 @@ Send a heartbeat while actively working and before a long operation. Use the lea
 
 - **Name input:** search for the exact requested object using an actually available search tool. Record the search query, considered candidates, selected source URL, source image and why it was selected. Describe uncertain dimensions and hidden surfaces.
 - **Image input:** inspect the saved attachment returned by context. Use it directly and bypass web search. Keep the original image and its provenance.
-- Inspect the image with a real vision-capable tool. Record which image/view was examined and a short observable result. Tool execution, visual inspection and source measurements require real evidence.
+- Inspect a batch of actual images with a real vision-capable tool. Call `review_reference_candidates` with the actual query (name mode) or attachment reference name (image mode), source URLs, inspection method/tool and each image's evidence. Answer all nine questions: object match, people, occlusion, clipping, front, side, top, sharpness and background separation.
+- Reject candidates with people, obscured/clipped geometry, the wrong object or blur. Unknown critical answers remain unresolved. Prefer a clean full-object front/side three-quarter image; prioritize actual front, side and top coverage. The server scores your supplied observations and does not run person detection or verify the image itself.
+- Select a usable candidate with a factual reason. For a rejected attachment, request a replacement and keep web search skipped. A segmentation or depth tool is optional only if actually available and useful; log its real output and uncertainty. Neither tool recovers hidden evidence or substitutes for references.
 
 Use the gateway's live reporting tools to record starts and actual results. When reporting events, follow the current schema, UUID/revision rules and allowed URL format. A note about a search does not execute a search.
 
 ## 4. Generate and review six views
 
 1. Create an owned reference project from the actual image in the format accepted by the current tool schema. Inspect it and its revision.
-2. Use `prepare_multiview_reference` to obtain the generic instruction. Attach the source to a real available image generator. Record provider, prompt, input, start, wait, returned output or failure. If no generator is available, mark the stage blocked and continue independent checks.
+2. Use `prepare_multiview_reference` to obtain the generic instruction. Attach the source to a real available image generator. Record provider, prompt, input, start, wait, returned output or failure. If no generator is available, use the returned `generatorFallback`: export the actual source image plus exact prompt to a capable generator/owner, share no workspace key, and keep the stage blocked/awaiting returned artifacts. Copying a request does not dispatch a worker. The original authenticated runner must receive and inspect the sheet plus six actual JPEG crops, then import them with the pinned source revision. Do not rebind its invitation to another provider/model. Maintain a real lease or use a linked retry after expiry.
 3. Review the complete sheet and each crop. Layout is **front, back, left / right, top, bottom**. Check alpha/background, exact cell boundaries, orientation, clipping, object identity and contradictory details. Generated/hidden views are estimates, not calibrated measurements.
 4. Save the sheet and all six actual crops using the supported multiview-set tool. Keep source revision, sheet hash, dimensions and labels. Do not fill missing images with placeholders or render projections and describe them as generated references.
 5. Inspect the saved set. Link it to this attempt through the supported job/scene APIs. Recheck all views after model changes.
+
+Front, side and top are the priority three views. If only those exist, record partial evidence and keep the missing six-view pipeline unresolved. Never replace a missing generated view with the original image, a repeated crop or a render of the current model.
 
 This is the six-view module: its events, timer and last reached stage belong to this attempt. Its saved images must not appear as another agent's current reference.
 
@@ -50,6 +54,8 @@ This is the six-view module: its events, timer and last reached stage belong to 
 ## 6. Build supported details
 
 Review visible features generically rather than inserting a fixed arcade part list. For each proposed detail, record source/view, host object, actual face/group, silhouette, location, depth/height, operation and uncertainty. Choose a supported primitive, hole, recess, mound, separate component or outline operation.
+
+Discover saved face IDs with `inspect_saved_feature_faces`: omit `face_indices`, page with `face_offset` and `face_limit` (1–500), and follow `nextOffset` until null. IDs are global for that saved mesh; do not guess later IDs from the first page or combine pagination with selection. Reinspect after geometry changes.
 
 Check the real current capability list first. Existing planners may validate a proposed boundary without editing the mesh. General multi-face holes/mounds, automatic feature placement, independent internal layers and per-node cross-depth curves are not universally available. Mark each missing operation blocked, retain the proposed parameters and attempt independent available stages. Never rename a planner result as built geometry.
 
