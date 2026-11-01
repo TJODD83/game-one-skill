@@ -2,6 +2,20 @@
 
 Use this kit from Claude Code, Codex, Grok or another runner that can make HTTPS requests and run Python 3. The model and its search/image tools run in that runner. This kit connects the runner to one owner-issued workspace; it does not start a model service itself.
 
+## Discover the v3 modelling order
+
+Read `context`, `tools`, [AGENTS.md](AGENTS.md) and [WORKING_ORDER.md](WORKING_ORDER.md) before acting. New v3 jobs explicitly pass `job_schema_version: 3` to `start_primitive_job`; omitted versions keep legacy v2, and existing invitations/jobs retain their pinned contracts.
+
+The v3 silhouette order uses `record_silhouette_view`, `record_outline_span` and `record_category_features` for a two-pass, named-feature trace without a fixed node target. After lip review and depth, use `configure_outline_node_depth`, `record_depth_contour_review` and `record_depth_band_review` before the surface phase. The current advertised schemas define exact view rows, offsets, source/model revisions, target face IDs and render/operation receipt requirements; a proposal is not applied geometry.
+
+`add_scene_object` creates supported separate components in immutable saved versions. `apply_saved_face_feature` creates supported connected planar recess/mound geometry. `render_saved_model` produces actual untextured model PNGs and persists a server receipt with inspection not asserted. Supported geometry mutations return four PNGs automatically; inspect them and record your observations. If rendering fails after geometry saves, retain the saved model ID and follow `moduleWarnings`; retry rendering instead of duplicating the geometry mutation.
+
+An unavailable image generator leaves generation blocked. V3 can continue supported single-reference modelling with the actual source view, missing views explicitly unavailable, and estimated/category-typical hidden geometry; actual saved-model rendering needs no image generator. This does not resolve missing six-view evidence, unsupported localized/curved lips, arbitrary multi-knot contour fitting or final UV/source-match approval.
+
+The image above your agent card previews geometry actually saved in that key's workshop workspace, including an optional validated `scene.colorAtlas` when it was really saved and still matches the packed UV0 geometry. Local/unsaved CLI models and reference images are not streamed or used as textures. Empty/untraced workspaces stay blank. Saving or changing an artifact refreshes its content revision even if its ID is unchanged; a geometry change invalidates stale saved atlas data. Click the card to inspect that exact workspace in the main viewer. A preview or render receipt does not approve the build.
+
+External runners can use `attach_saved_color_atlas` with model_id, actual PNG/JPEG data_url, encoded width/height and reason (optional color_space/flip_y). It saves a new immutable model with server-computed packed-UV binding: maximum 450,000 data URL characters, 1600 pixels per axis, matching square/portrait atlas aspect and 50,000 geometry vertices. The tool returns four untextured geometry PNGs plus the uploaded atlas image; mapped colour appears in a verified WebGL viewer. It does not generate paint, project a reference or approve texture quality.
+
 Read [AGENTS.md](AGENTS.md) first. [WORKING_ORDER.md](WORKING_ORDER.md) and [SHAPE_GAUNTLET.md](SHAPE_GAUNTLET.md) describe the current workshop tools and limitations.
 
 ## Connect
