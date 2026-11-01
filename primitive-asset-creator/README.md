@@ -43,6 +43,8 @@ Accept: application/json
 | Discover allowed tool schemas | `{"action":"tools"}` |
 | Invoke a tool | `{"action":"tool","name":"tool_name","arguments":{}}` |
 | Renew active work | `{"action":"heartbeat","stage":"trace_outline","message":"Short factual update"}` |
+| Liveness while waiting | `{"action":"heartbeat"}` |
+| Resume interrupted work | `{"action":"resume","provider":"same registered provider","model":"same registered model"}` |
 | Read current workspace state | `{"action":"snapshot"}` |
 | Submit model JSON | `{"action":"submit","model":{}}` |
 | Finish | `{"action":"finish","outcome":"completed|blocked|failed","note":"Result and evidence references"}` |
@@ -60,3 +62,32 @@ Before selecting a source, use the current `review_reference_candidates` schema 
 If this runner cannot generate images, `prepare_multiview_reference` supplies the exact prompt and a manual handoff/resume contract. Export the source plus prompt to a capable generator or the owner, and return the actual artifacts to the original authenticated runner for inspection/import. Never transfer the workspace key to another provider. Keep the generation stage blocked/awaiting output, and record front/side/top-only evidence as partial. The source image, current mesh render or repeated crops do not count as generated views. No automatic generator dispatch, segmentation model or depth model is installed by this kit.
 
 Saved face inspection supports `face_offset`/`face_limit` pages (up to 500). Follow `nextOffset` until null before choosing actual global face IDs; do not guess IDs outside the returned page.
+
+## Upload generated views from a local folder
+
+The generator can return six separate files. Save them as front.png, back.png, left.png, right.png, top.png and bottom.png in one folder; .jpg or .jpeg may be used instead, with one file per view. Keep the original key with the original runner. The generator does not need that key.
+
+    python3 primitive_agent.py upload-views ./views --source-project-id SOURCE_PROJECT_UUID --source-revision SAVED_SOURCE_REVISION
+
+Use the actual source project ID and exact revision timestamp returned by prepare_multiview_reference. The client reads the files, measures dimensions from their bytes, base64-encodes them, and calls create_multiview_reference_set. Six independent images use a canonical images_hash. It creates no sheet, copies no missing views and performs no image generation.
+
+If the folder also contains an actual sheet.png, sheet.jpg or sheet.jpeg, the client uses the seven-image sheet import instead. That sheet must be 16:9 or 3:2, with exact three-column/two-row crop dimensions in order **front, back, left / right, top, bottom**. It calculates sheet_hash from the actual sheet data URL. Remove an unrelated sheet from the folder before using independent views.
+
+Limits are **1600 pixels per axis**, **450,000 characters per image data URL**, and **3,400,000 bytes for the complete JSON request**. Resize/recompress actual images when needed. The client checks PNG chunk/pixel-stream integrity and PNG/JPEG header dimensions; this is not a visual inspection or full JPEG decoder. Review identity, orientation, clipping, transparency/background and contradictions yourself. Saved views remain estimates.
+
+## Waiting for output and resuming
+
+Local generation, downloads and file work do not contact the server. After five minutes without server contact, a running session is shown as interrupted.
+
+Run a separate terminal with the same secret environment while the original runner waits:
+
+    python3 primitive_agent.py keepalive
+
+This sends only an action heartbeat immediately and every 30 seconds for 15 minutes, then stops. It does not overwrite the current stage/message or claim that tools progressed. Use **--duration SECONDS** (1–3600) and **--interval SECONDS** (10–60) for a bounded wait. A rejected heartbeat, authentication error or Ctrl+C stops the loop. Keepalive does not resume interrupted or finished work.
+
+Read context after an interruption. If it is still the same unfinished workspace, explicitly resume with the same registered identity:
+
+    python3 primitive_agent.py resume --provider REGISTERED_PROVIDER --model REGISTERED_MODEL
+    python3 primitive_agent.py snapshot
+
+The same key and matching provider/model are required. Resume keeps the existing run, files and history. Active sessions use heartbeat; completed, blocked, failed, revoked or expired invitations require the owner's next supported action or a new invitation. Never silently rebind a workspace to a different provider/model.
