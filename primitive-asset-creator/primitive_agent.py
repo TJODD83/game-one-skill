@@ -37,6 +37,7 @@ def parser():
     call = sub.add_parser('call', help='Call an available workshop tool')
     call.add_argument('name')
     call.add_argument('arguments', nargs='?', default='{}', help='JSON object, or @path/to/arguments.json')
+    call.add_argument('--images-dir', type=Path, help='Save returned PNG/JPEG images into this directory for an actual vision tool')
     heartbeat = sub.add_parser('heartbeat')
     heartbeat.add_argument('--stage', required=True)
     heartbeat.add_argument('--message', required=True)
@@ -256,6 +257,42 @@ def failed_result(value):
     return isinstance(value.get('result'), dict) and failed_result(value['result'])
 
 
+def save_returned_images(value, directory):
+    """Save actual returned MCP images; never represent saving as inspection."""
+    if not isinstance(value, dict) or not isinstance(value.get('result'), dict):
+        raise ValueError('The server did not return a tool result')
+    content = value['result'].get('content')
+    if not isinstance(content, list):
+        raise ValueError('The server did not return a content list')
+    directory.mkdir(parents=True, exist_ok=True)
+    saved = 0
+    for index, part in enumerate(content):
+        if not isinstance(part, dict) or part.get('type') != 'image':
+            continue
+        mime = part.get('mimeType')
+        if mime not in ('image/png', 'image/jpeg'):
+            raise ValueError('Unsupported returned image type')
+        try:
+            data = base64.b64decode(part.get('data', ''), validate=True)
+        except (ValueError, TypeError):
+            raise ValueError('Invalid returned image encoding') from None
+        if len(data) > 2500000:
+            raise ValueError('Returned image exceeds the supported size')
+        detected, dimensions = image_dimensions(data)
+        if detected != mime:
+            raise ValueError('Returned image bytes do not match their declared type')
+        ext = '.png' if mime == 'image/png' else '.jpg'
+        path = directory / ('returned-' + str(uuid.uuid4()) + ext)
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, 'wb') as out:
+            out.write(data)
+        content[index] = {'type':'image_file', 'mimeType':mime, 'path':str(path.resolve()), 'width':dimensions[0], 'height':dimensions[1], 'sha256':hashlib.sha256(data).hexdigest(), 'notice':'File saved; inspection by a vision-capable runner is still required.'}
+        saved += 1
+    if saved == 0:
+        raise ValueError('The tool returned no images to save')
+    return value
+
+
 def keepalive(url, key, duration=900, interval=30, timeout=90, *, send=None, clock=None, sleep=None):
     if not (1 <= duration <= 3600) or not (10 <= interval <= 60):
         raise ValueError('Keepalive duration must be 1–3600 seconds and interval 10–60 seconds')
@@ -325,6 +362,8 @@ def main(argv=None):
         if not math.isfinite(args.timeout) or args.timeout <= 0:
             raise ValueError('Timeout must be positive')
         result = keepalive(args.url, key, args.duration, args.interval, args.timeout) if args.command == 'keepalive' else request(args.url, key, payload(args), args.timeout)
+        if args.command == 'call' and args.images_dir and not failed_result(result):
+            result = save_returned_images(result, args.images_dir)
         output = json.dumps(result, indent=2, ensure_ascii=False).replace(key, '[redacted]') + '\n'
         if args.output:
             args.output.write_text(output, encoding='utf-8')

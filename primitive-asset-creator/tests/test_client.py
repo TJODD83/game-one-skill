@@ -57,6 +57,32 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class ClientTest(unittest.TestCase):
+    def test_save_returned_image_for_vision(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            image = png(9, 7)
+            value = {'result': {'content': [{'type':'text','text':'receipt'}, {'type':'image','mimeType':'image/png','data':base64.b64encode(image).decode('ascii')}]}}
+            result = client.save_returned_images(value, Path(tmp))
+            part = result['result']['content'][1]
+            self.assertEqual(part['type'], 'image_file')
+            self.assertEqual(Path(part['path']).read_bytes(), image)
+            self.assertEqual((part['width'],part['height']), (9,7))
+            self.assertIn('inspection', part['notice'])
+            self.assertNotIn('data', part)
+            with self.assertRaisesRegex(ValueError, 'match'):
+                client.save_returned_images({'result':{'content':[{'type':'image','mimeType':'image/jpeg','data':base64.b64encode(image).decode('ascii')}]}},Path(tmp))
+
+    def test_call_saves_returned_image_and_prints_its_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            image=png(9,7)
+            returned={'result':{'content':[{'type':'text','text':'node receipt'}, {'type':'image','mimeType':'image/png','data':base64.b64encode(image).decode('ascii')}]}}
+            output=io.StringIO()
+            with patch.dict(os.environ,{'PRIMITIVE_AGENT_KEY':'test-secret','PRIMITIVE_AGENT_URL':'https://example.test'}),patch.object(client,'request',return_value=returned),contextlib.redirect_stdout(output):
+                code=client.main(['call','request_node_visual_review','{}','--images-dir',tmp])
+            self.assertEqual(code,0)
+            part=json.loads(output.getvalue())['result']['content'][1]
+            self.assertEqual(Path(part['path']).read_bytes(),image)
+            self.assertNotIn('data',part)
+
     def test_https_and_credential_url_rules(self):
         self.assertEqual(client.endpoint('https://agent.example/'), 'https://agent.example/api')
         self.assertEqual(client.endpoint('http://127.0.0.1:1234'), 'http://127.0.0.1:1234/api')
